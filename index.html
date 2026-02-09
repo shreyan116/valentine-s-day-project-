@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Mouni 💖</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --pink: #ff4d6d;
+            --dark-pink: #c9184a;
+            --soft-pink: #ffccd5;
+            --glass: rgba(255, 255, 255, 0.75);
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at center, #fff0f3 0%, #ffccd5 100%);
+            font-family: 'Georgia', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* --- BACKGROUND DECOR --- */
+        .decoration-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+        }
+        .floating-emoji {
+            position: absolute;
+            opacity: 0.4;
+            animation: floatUp 8s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* --- THE CARD --- */
+        .card {
+            width: 320px;  
+            height: 550px; 
+            perspective: 2000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+            backface-visibility: hidden; 
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .card-front {
+            background: linear-gradient(45deg, var(--pink), var(--dark-pink));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .card-back {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            color: #333;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scrollable-message {
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 15px 20px;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 18px;
+            background-color: var(--pink);
+            margin-left: 4px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- STEP SYSTEM --- */
+        .step { display: none; flex-direction: column; align-items: center; width: 100%; text-align: center; }
+        .step.active { display: flex; animation: slideIn 0.8s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        video { 
+            border-radius: 20px; 
+            width: 85%; 
+            max-width: 320px; 
+            border: 5px solid white; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15); 
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            width: 90%;
+        }
+
+        .memory-grid img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            background-color: white;
+            border: 5px solid white;
+            border-bottom: 25px solid white;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--pink), var(--dark-pink));
+            color: white; border: none; padding: 12px 25px;
+            font-size: 16px; font-weight: bold; border-radius: 50px;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+            margin-top: 15px;
+        }
+
+        #question-box {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .heart-icon { font-size: 60px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    </style>
+</head>
+<body>
+
+    <div class="decoration-bg" id="decorationBg"></div>
+
+    <div id="experience-container" style="width: 100%; display: flex; justify-content: center;">
+        
+        <div id="step1" class="step active">
+            <div class="card" id="mainCard" onclick="handleCardClick(event)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="heart-icon">💝</div>
+                        <h1>For Mouni</h1>
+                        <p style="opacity: 0.8;">Tap to open</p>
+                    </div>
+                    
+                    <div class="card-back">
+                        <div style="padding: 20px 25px 0;">
+                            <h2 style="color: var(--dark-pink); margin:0;">Dear Mouni, ❤️</h2>
+                        </div>
+                        <div class="scrollable-message" id="typewriterBox"></div>
+                        <div style="padding: 10px; text-align: center;">
+                            <button id="giftBtn" style="display:none;" onclick="goToStep(2, event)">Open Your Gift 🎁</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="step2" class="step">
+            <h2 style="color: var(--dark-pink);">A Surprise... 🎥</h2>
+            <video id="vdayVideo" controls>
+                <source src="your-video.mp4" type="video/mp4">
+            </video>
+            <button onclick="goToStep(3)">Our Memories 📸</button>
+        </div>
+
+        <div id="step3" class="step">
+            <h2 style="color: var(--dark-pink); margin-top: 20px;">Favorite Moments ❤️</h2>
+            <div class="memory-grid">
+                <img src="pic1.jpg"> <img src="pic2.jpg">
+                <img src="pic3.jpg"> <img src="pic4.jpg">
+            </div>
+            <button onclick="goToStep(4)">One Last Thing... ✨</button>
+        </div>
+
+        <div id="step4" class="step">
+            <div id="question-box">
+                <h1 style="color: var(--dark-pink); font-size: 2.5rem;">Mouni...</h1>
+                <p style="font-size: 1.2rem; color: #555;">Will you be my Valentine?</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button onclick="celebrate()" style="background: #28a745; font-size: 20px;">YES! 💖</button>
+                    <button id="noBtn" onmouseover="moveNo()" onclick="moveNo()">No</button>
+                </div>
+            </div>
+            <h2 id="finalMsg" style="display:none; color: var(--dark-pink); margin-top: 20px;">I love You Forever ♾️</h2>
+        </div>
+    </div>
+
+    <script>
+        const messageText = `Hyy This is to my fav person Thank you for being with me for this 3 years the support that you gave me when i'm down  i love you soo munch!\n\nI love you so much Mouni! ❤️`;
+        let isTyping = false;
+
+        function handleCardClick(e) {
+            const card = document.getElementById('mainCard');
+            if (e.target.closest('button')) return;
+            if (!card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                setTimeout(startTypewriter, 600);
+            }
+        }
+
+        function startTypewriter() {
+            if (isTyping) return;
+            isTyping = true;
+            const container = document.getElementById('typewriterBox');
+            let i = 0;
+            const cursor = document.createElement('span');
+            cursor.className = 'typing-cursor';
+            container.appendChild(cursor);
+
+            function type() {
+                if (i < messageText.length) {
+                    const char = messageText.charAt(i);
+                    cursor.insertAdjacentHTML('beforebegin', char === "\n" ? '<br>' : char);
+                    i++;
+                    setTimeout(type, 40);
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    document.getElementById('giftBtn').style.display = 'inline-block';
+                }
+            }
+            type();
+        }
+
+        function goToStep(num, e) {
+            if(e) e.stopPropagation();
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + num).classList.add('active');
+            if(num === 2) document.getElementById('vdayVideo').play();
+            window.scrollTo(0,0);
+        }
+
+        function moveNo() {
+            const btn = document.getElementById('noBtn');
+            const x = Math.random() * (window.innerWidth - btn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - btn.offsetHeight);
+            btn.style.position = 'fixed';
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+        }
+
+        function celebrate() {
+            confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+            document.getElementById('finalMsg').style.display = 'block';
+            document.getElementById('noBtn').style.display = 'none';
+        }
+
+        function createDeco() {
+            const container = document.getElementById('decorationBg');
+            const el = document.createElement('div');
+            el.className = 'floating-emoji';
+            el.innerHTML = ['❤️', '💖', '🌸', '✨'][Math.floor(Math.random() * 4)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.fontSize = Math.random() * 20 + 15 + 'px';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 8000);
+        }
+        setInterval(createDeco, 400);
+    </script>
+</body>
+</html>
